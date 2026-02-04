@@ -440,10 +440,9 @@ def create_orbital_figure(
                             args=[
                                 None,
                                 dict(
-                                    frame=dict(duration=50, redraw=False),
+                                    frame=dict(duration=80, redraw=True),
                                     fromcurrent=True,
                                     mode="immediate",
-                                    transition=dict(duration=20, easing="linear"),
                                 )
                             ],
                         ),
@@ -453,9 +452,8 @@ def create_orbital_figure(
                             args=[
                                 [None],
                                 dict(
-                                    frame=dict(duration=0, redraw=False),
+                                    frame=dict(duration=0, redraw=True),
                                     mode="immediate",
-                                    transition=dict(duration=0),
                                 )
                             ],
                         ),
@@ -486,9 +484,8 @@ def create_orbital_figure(
                             args=[
                                 [str(i)],
                                 dict(
-                                    frame=dict(duration=0, redraw=False),
+                                    frame=dict(duration=0, redraw=True),
                                     mode="immediate",
-                                    transition=dict(duration=0),
                                 )
                             ],
                             label=str(i * 5),
