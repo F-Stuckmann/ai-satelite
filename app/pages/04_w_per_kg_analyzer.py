@@ -77,7 +77,7 @@ duty_cycle = st.sidebar.slider("Compute Duty Cycle (%)", 10, 100, 50, 5)
 def calculate_masses():
     """Calculate component masses."""
     # Solar array mass (kg/m²)
-    solar_density = SOLAR_CELLS[solar_type]["mass_per_m2"]
+    solar_density = SOLAR_CELLS[solar_type]["mass_per_area"]
     solar_mass = solar_area * solar_density
 
     # Battery mass
@@ -358,7 +358,7 @@ areas_sens = np.linspace(2, 30, 20)
 wpkg_solar = []
 for a in areas_sens:
     power_gen = a * solar_efficiency * 1361
-    mass_add = a * SOLAR_CELLS[solar_type]["mass_per_m2"]
+    mass_add = a * SOLAR_CELLS[solar_type]["mass_per_area"]
     base_mass = masses["total"] - masses["solar_array"]
     wpkg_solar.append(power_gen / (base_mass + mass_add))
 
