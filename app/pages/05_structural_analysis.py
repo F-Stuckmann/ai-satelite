@@ -58,6 +58,21 @@ boundary = st.sidebar.selectbox(
     format_func=lambda x: x.replace("_", " ").title(),
 )
 
+with st.sidebar.expander("ℹ️ Boundary Conditions"):
+    st.markdown("""
+**Simply Supported**: Edges can rotate freely but cannot translate.
+- Lower buckling resistance
+- Lower natural frequency
+- Common for panels attached with hinges/pins
+
+**Clamped (Fixed)**: Edges cannot rotate or translate.
+- Higher buckling resistance (~1.7x)
+- Higher natural frequency
+- Common for welded/bonded edges
+
+*Satellite panels are typically between these extremes.*
+""")
+
 # Load material
 material = MaterialProperties.from_database(material_key)
 
