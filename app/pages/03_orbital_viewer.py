@@ -288,11 +288,11 @@ def create_orbital_figure(
     earth_x, earth_y, earth_z = create_sphere(EARTH_RADIUS_KM, resolution=60)
     colors = create_earth_texture_colors(earth_x, earth_y, earth_z)
 
-    # Convert colors to plotly format
+    # Convert colors to plotly format (convert to int32 to avoid overflow)
     surfacecolor = (
-        colors[:, :, 0] * 65536 +
-        colors[:, :, 1] * 256 +
-        colors[:, :, 2]
+        colors[:, :, 0].astype(np.int32) * 65536 +
+        colors[:, :, 1].astype(np.int32) * 256 +
+        colors[:, :, 2].astype(np.int32)
     )
 
     fig.add_trace(go.Surface(
