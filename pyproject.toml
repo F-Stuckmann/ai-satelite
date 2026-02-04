@@ -29,10 +29,6 @@ dependencies = [
     "scipy>=1.10.0",
     "pandas>=2.0.0",
     "streamlit>=1.30.0",
-    "poliastro>=0.17.0",
-    "sgp4>=2.22",
-    "skyfield>=1.46",
-    "pyvista>=0.43.0",
     "plotly>=5.18.0",
     "matplotlib>=3.7.0",
     "pint>=0.22",
@@ -45,6 +41,13 @@ dev = [
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+]
+orbital = [
+    "sgp4>=2.22",
+    "skyfield>=1.46",
+]
+viz3d = [
+    "pyvista>=0.43.0",
 ]
 fea = [
     "sfepy>=2024.1",
