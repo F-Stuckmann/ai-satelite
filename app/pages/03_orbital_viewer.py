@@ -323,6 +323,10 @@ def create_orbital_figure(
     # Calculate orbital planes and satellites
     raan_spacing = 360 / max(1, num_satellites // satellites_per_plane) if num_satellites > satellites_per_plane else 0
 
+    # Track trace indices for animation
+    trace_count = 2  # Earth + Atmosphere
+    satellite_trace_indices = []
+
     for plane_idx in range(max(1, num_satellites // satellites_per_plane)):
         raan = plane_idx * raan_spacing
 
@@ -340,6 +344,7 @@ def create_orbital_figure(
                 name=f"Orbit Plane {plane_idx + 1}" if num_satellites > satellites_per_plane else "Orbit",
                 hoverinfo="name",
             ))
+            trace_count += 1
 
         # Add satellites in this plane
         for sat_idx in range(satellites_per_plane):
@@ -371,13 +376,15 @@ def create_orbital_figure(
                     f"<extra></extra>"
                 ),
             ))
+            satellite_trace_indices.append(trace_count)
+            trace_count += 1
 
     # Camera and layout
     orbital_radius = EARTH_RADIUS_KM + altitude_km
     camera_distance = orbital_radius * 2.5
 
     # Create animation frames if animation is enabled
-    if animate and num_satellites <= 4:  # Limit animation for performance
+    if animate and num_satellites <= 4 and satellite_trace_indices:
         frames = []
         n_frames = 72  # 72 frames for full orbit (5° per frame)
 
@@ -386,10 +393,10 @@ def create_orbital_figure(
             frame_data = []
 
             # Recalculate satellite positions for this frame
-            raan_spacing = 360 / max(1, num_satellites // satellites_per_plane) if num_satellites > satellites_per_plane else 0
+            raan_spacing_anim = 360 / max(1, num_satellites // satellites_per_plane) if num_satellites > satellites_per_plane else 0
 
             for plane_idx in range(max(1, num_satellites // satellites_per_plane)):
-                raan = plane_idx * raan_spacing
+                raan = plane_idx * raan_spacing_anim
 
                 for sat_idx in range(satellites_per_plane):
                     if plane_idx * satellites_per_plane + sat_idx >= num_satellites:
@@ -408,7 +415,12 @@ def create_orbital_figure(
                         marker=dict(size=8, color="red", symbol="diamond"),
                     ))
 
-            frames.append(go.Frame(data=frame_data, name=str(frame_idx)))
+            # Only update satellite traces, keep Earth and orbit paths
+            frames.append(go.Frame(
+                data=frame_data,
+                name=str(frame_idx),
+                traces=satellite_trace_indices,  # Only animate satellite traces
+            ))
 
         fig.frames = frames
 
