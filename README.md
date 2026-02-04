@@ -63,13 +63,11 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
+pip install -r requirements.txt
 pip install -e .
-
-# Or with all optional dependencies
-pip install -e ".[dev,fea,optimization]"
 ```
 
-## Quick Start
+## Quick Start (Local)
 
 ```bash
 # Run the interactive web app
@@ -77,7 +75,60 @@ streamlit run app/main.py
 
 # Or run example scripts
 python examples/verify_spacex_patent.py
-python examples/push_w_per_kg_limit.py
+```
+
+## Remote Access (Run on Server, Access via IP)
+
+If you want to run the app on a server and access it from another computer:
+
+```bash
+# 1. SSH into your server
+ssh user@your-server-ip
+
+# 2. Setup (first time only)
+cd ai-satelite
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+
+# 3. Run accessible from network
+streamlit run app/main.py --server.address 0.0.0.0 --server.port 8501
+```
+
+Then open in your browser:
+```
+http://<your-server-ip>:8501
+```
+
+### Run in Background
+
+```bash
+# Option 1: nohup (persists after logout)
+nohup streamlit run app/main.py --server.address 0.0.0.0 > streamlit.log 2>&1 &
+
+# Option 2: screen (can reattach later)
+screen -S satellite
+streamlit run app/main.py --server.address 0.0.0.0
+# Detach: Ctrl+A, D
+# Reattach: screen -r satellite
+
+# Option 3: tmux
+tmux new -s satellite
+streamlit run app/main.py --server.address 0.0.0.0
+# Detach: Ctrl+B, D
+# Reattach: tmux attach -t satellite
+```
+
+### Firewall Note
+
+Make sure port 8501 is open:
+```bash
+# Check if listening
+lsof -i :8501
+
+# On Linux with ufw
+sudo ufw allow 8501
 ```
 
 ## Project Structure
