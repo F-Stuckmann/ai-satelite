@@ -1,0 +1,28 @@
+# Core
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=2.0.0
+
+# Web Application
+streamlit>=1.30.0
+
+# Orbital mechanics
+poliastro>=0.17.0
+sgp4>=2.22
+skyfield>=1.46
+
+# Visualization
+pyvista>=0.43.0
+plotly>=5.18.0
+matplotlib>=3.7.0
+
+# Units
+pint>=0.22
+
+# Optional: FEA (uncomment if needed)
+# sfepy>=2024.1
+# meshio>=5.3.0
+
+# Optional: Optimization (uncomment if needed)
+# pymoo>=0.6.0
+# optuna>=3.4.0

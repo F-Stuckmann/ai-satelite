@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-satelite"
+version = "0.1.0"
+description = "Full-fidelity AI satellite constellation simulator - verify SpaceX US11834205B1 and push W/kg limits"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "F-Stuckmann"}
+]
+keywords = ["satellite", "thermal", "simulation", "spacecraft", "orbital-mechanics", "spacex"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "pandas>=2.0.0",
+    "streamlit>=1.30.0",
+    "poliastro>=0.17.0",
+    "sgp4>=2.22",
+    "skyfield>=1.46",
+    "pyvista>=0.43.0",
+    "plotly>=5.18.0",
+    "matplotlib>=3.7.0",
+    "pint>=0.22",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+fea = [
+    "sfepy>=2024.1",
+    "meshio>=5.3.0",
+]
+optimization = [
+    "pymoo>=0.6.0",
+    "optuna>=3.4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/F-Stuckmann/ai-satelite"
+Repository = "https://github.com/F-Stuckmann/ai-satelite"
+
+[project.scripts]
+ai-satelite = "app.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "app*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "-v --cov=src --cov-report=term-missing"

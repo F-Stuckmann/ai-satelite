@@ -1,0 +1,1 @@
+"""Constellation simulation module."""
