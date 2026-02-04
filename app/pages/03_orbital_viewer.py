@@ -3,18 +3,11 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
-import time
 
 st.set_page_config(page_title="Orbital Viewer", page_icon="🌍", layout="wide")
 
 import sys
 sys.path.insert(0, ".")
-
-# Initialize session state for animation
-if "satellite_position" not in st.session_state:
-    st.session_state.satellite_position = 0
-if "animating" not in st.session_state:
-    st.session_state.animating = False
 
 from src.core.constants import EARTH_RADIUS_KM
 
@@ -279,6 +272,8 @@ def create_orbital_figure(
     show_orbit_path: bool = True,
     num_satellites: int = 1,
     satellites_per_plane: int = 1,
+    animate: bool = False,
+    animation_speed: int = 5,
 ) -> go.Figure:
     """Create 3D figure with Earth and orbiting satellite(s)."""
 
@@ -381,6 +376,120 @@ def create_orbital_figure(
     orbital_radius = EARTH_RADIUS_KM + altitude_km
     camera_distance = orbital_radius * 2.5
 
+    # Create animation frames if animation is enabled
+    if animate and num_satellites <= 4:  # Limit animation for performance
+        frames = []
+        n_frames = 72  # 72 frames for full orbit (5° per frame)
+
+        for frame_idx in range(n_frames):
+            frame_position = (satellite_position_deg + frame_idx * 5) % 360
+            frame_data = []
+
+            # Recalculate satellite positions for this frame
+            raan_spacing = 360 / max(1, num_satellites // satellites_per_plane) if num_satellites > satellites_per_plane else 0
+
+            for plane_idx in range(max(1, num_satellites // satellites_per_plane)):
+                raan = plane_idx * raan_spacing
+
+                for sat_idx in range(satellites_per_plane):
+                    if plane_idx * satellites_per_plane + sat_idx >= num_satellites:
+                        break
+
+                    sat_anomaly = frame_position + (sat_idx * 360 / satellites_per_plane)
+                    sat_x, sat_y, sat_z = get_satellite_position(
+                        altitude_km, inclination_deg, raan, sat_anomaly
+                    )
+
+                    frame_data.append(go.Scatter3d(
+                        x=[sat_x],
+                        y=[sat_y],
+                        z=[sat_z],
+                        mode="markers",
+                        marker=dict(size=8, color="red", symbol="diamond"),
+                    ))
+
+            frames.append(go.Frame(data=frame_data, name=str(frame_idx)))
+
+        fig.frames = frames
+
+        # Add play/pause buttons
+        fig.update_layout(
+            updatemenus=[
+                dict(
+                    type="buttons",
+                    showactive=False,
+                    y=0.1,
+                    x=0.05,
+                    xanchor="left",
+                    buttons=[
+                        dict(
+                            label="▶ Play",
+                            method="animate",
+                            args=[
+                                None,
+                                dict(
+                                    frame=dict(duration=50, redraw=True),
+                                    fromcurrent=True,
+                                    mode="immediate",
+                                    transition=dict(duration=0),
+                                )
+                            ],
+                        ),
+                        dict(
+                            label="⏸ Pause",
+                            method="animate",
+                            args=[
+                                [None],
+                                dict(
+                                    frame=dict(duration=0, redraw=False),
+                                    mode="immediate",
+                                    transition=dict(duration=0),
+                                )
+                            ],
+                        ),
+                    ],
+                    font=dict(color="white"),
+                    bgcolor="rgba(50,50,50,0.8)",
+                )
+            ],
+            sliders=[
+                dict(
+                    active=0,
+                    yanchor="top",
+                    xanchor="left",
+                    currentvalue=dict(
+                        font=dict(size=12, color="white"),
+                        prefix="Position: ",
+                        suffix="°",
+                        visible=True,
+                        xanchor="center",
+                    ),
+                    transition=dict(duration=0),
+                    pad=dict(b=10, t=50),
+                    len=0.9,
+                    x=0.05,
+                    y=0,
+                    steps=[
+                        dict(
+                            args=[
+                                [str(i)],
+                                dict(
+                                    frame=dict(duration=0, redraw=True),
+                                    mode="immediate",
+                                    transition=dict(duration=0),
+                                )
+                            ],
+                            label=str(i * 5),
+                            method="animate",
+                        )
+                        for i in range(n_frames)
+                    ],
+                    font=dict(color="white"),
+                    bgcolor="rgba(50,50,50,0.5)",
+                )
+            ],
+        )
+
     fig.update_layout(
         scene=dict(
             xaxis=dict(
@@ -446,41 +555,21 @@ def main():
 
     show_orbit_path = st.sidebar.checkbox("Show orbit path", value=True)
 
-    # Animation controls
-    st.sidebar.subheader("🎬 Animation")
-    col_anim1, col_anim2 = st.sidebar.columns(2)
-
-    with col_anim1:
-        if st.button("▶️ Play" if not st.session_state.animating else "⏸️ Pause"):
-            st.session_state.animating = not st.session_state.animating
-
-    with col_anim2:
-        if st.button("🔄 Reset"):
-            st.session_state.satellite_position = 0
-            st.session_state.animating = False
-
-    animation_speed = st.sidebar.slider(
-        "Animation Speed",
-        min_value=1,
-        max_value=20,
-        value=5,
-        help="Degrees per frame",
+    # Animation toggle
+    enable_animation = st.sidebar.checkbox(
+        "🎬 Enable Animation",
+        value=True,
+        help="Enable Play/Pause controls in the 3D view"
     )
 
-    # Manual position control (disabled during animation)
-    if st.session_state.animating:
-        satellite_position = st.session_state.satellite_position
-        st.sidebar.info(f"Position: {satellite_position}°")
-    else:
-        satellite_position = st.sidebar.slider(
-            "Satellite Position (°)",
-            min_value=0,
-            max_value=359,
-            value=st.session_state.satellite_position,
-            step=5,
-            help="Position along orbit (true anomaly)",
-        )
-        st.session_state.satellite_position = satellite_position
+    satellite_position = st.sidebar.slider(
+        "Initial Position (°)",
+        min_value=0,
+        max_value=359,
+        value=0,
+        step=5,
+        help="Starting position along orbit",
+    )
 
     st.sidebar.header("Constellation")
 
@@ -511,6 +600,7 @@ def main():
         show_orbit_path=show_orbit_path,
         num_satellites=num_satellites,
         satellites_per_plane=sats_per_plane,
+        animate=enable_animation,
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -635,31 +725,24 @@ def main():
 
     st.plotly_chart(fig_ground, use_container_width=True)
 
-    # Animation tip
+    # Tips
     with st.expander("💡 Tips"):
         st.markdown("""
-        **Animation Controls:**
-        - Click **▶️ Play** to auto-animate the satellite orbiting Earth
-        - Adjust **Animation Speed** to control how fast it moves
-        - Use **🔄 Reset** to return satellite to starting position
+        **Animation Controls (in 3D view):**
+        - Click **▶ Play** button below the Earth to start animation
+        - Click **⏸ Pause** to stop
+        - Use the slider to scrub through the orbit manually
 
         **3D View Controls:**
-        - Click and drag the Earth to rotate view
+        - Click and drag to rotate the view
         - Scroll to zoom in/out
         - Double-click to reset view
 
         **Constellation Mode:**
         - Increase "Number of Satellites" to simulate a constellation
         - Satellites are distributed across orbital planes
+        - Animation works best with 1-4 satellites
         """)
-
-    # Auto-animation loop
-    if st.session_state.animating:
-        time.sleep(0.1)  # Small delay for smooth animation
-        st.session_state.satellite_position = (
-            st.session_state.satellite_position + animation_speed
-        ) % 360
-        st.rerun()
 
 
 if __name__ == "__main__":
